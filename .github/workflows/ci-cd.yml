@@ -1,0 +1,44 @@
+﻿name: Cloud CI-CD with Manual Approval
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Python Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        run: python -m unittest -v
+
+  docker-build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t cloud-cicd-approval-demo:${{ github.sha }} .
+
+  manual-approval:
+    name: Manual Release Approval
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: docker-build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Release approved
+        run: echo "Manual approval granted. Release stage completed."

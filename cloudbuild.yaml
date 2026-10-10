@@ -1,0 +1,26 @@
+# CI: run tests, build the container, and push it to Artifact Registry.
+# Create the Artifact Registry Docker repository "approval-demo" in asia-south1 first.
+steps:
+  - name: python:3.12-slim
+    entrypoint: sh
+    args:
+      - -c
+      - pip install -r requirements.txt && python -m unittest -v
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/approval-demo/approval-demo:$SHORT_SHA
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/approval-demo/approval-demo:$SHORT_SHA
+
+images:
+  - asia-south1-docker.pkg.dev/$PROJECT_ID/approval-demo/approval-demo:$SHORT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY

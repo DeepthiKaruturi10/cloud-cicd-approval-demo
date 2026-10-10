@@ -1,0 +1,21 @@
+# Release build. Configure this trigger with "Require approval" in Cloud Build.
+# Set the substitution _IMAGE_TAG to the short SHA of an image already built by CI.
+# Example: _IMAGE_TAG=abc1234 (use the actual CI build's commit SHA).
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - approval-demo
+      - --image=asia-south1-docker.pkg.dev/$PROJECT_ID/approval-demo/approval-demo:${_IMAGE_TAG}
+      - --region=asia-south1
+      - --platform=managed
+      - --quiet
+      - --allow-unauthenticated
+
+substitutions:
+  _IMAGE_TAG: REPLACE_WITH_CI_SHORT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
